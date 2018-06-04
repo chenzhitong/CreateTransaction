@@ -13,7 +13,7 @@ namespace ConsoleApp2
     {
         static void Main(string[] args)
         {
-            var tx = CreateTransaction();
+            var tx = CreateGlobalTransfer();
             //Need libleveldb.dll, and requires a platform(x86 or x64) that is consistent with the program.
             //Path of blockchain folder
             Blockchain.RegisterBlockchain(new LevelDBBlockchain("C:\\Users\\chenz\\Documents\\1Code\\chenzhitong\\neo-cli\\neo-cli\\bin\\Debug\\netcoreapp2.0\\Chain_00746E41"));
@@ -42,7 +42,7 @@ namespace ConsoleApp2
             Console.ReadLine();
         }
 
-        public static Transaction CreateTransaction()
+        public static Transaction CreateGlobalTransfer()
         {
             var outputs = new List<TransactionOutput>{ new TransactionOutput()
             {
@@ -62,6 +62,35 @@ namespace ConsoleApp2
                 Attributes = new TransactionAttribute[0],
                 Scripts = new Witness[0]
             };
+        }
+
+        public static Transaction CreateNep5Transfer()
+        {
+            var wallet = new Neo.Implementations.Wallets.NEP6.NEP6Wallet("wallet.json");
+            try
+            {
+                wallet.Unlock("password");
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("password error");
+            }
+            var assetId = new UInt160("ceab719b8baa2310f232ee0d277c061704541cfb".HexToBytes().Reverse().ToArray());
+            AssetDescriptor descriptor = new AssetDescriptor(assetId);
+            if (!BigDecimal.TryParse("100", descriptor.Decimals, out BigDecimal amount))
+            {
+                Console.WriteLine("Incorrect Amount Format");
+                return null;
+            }
+            return wallet.MakeTransaction(null, new[]
+                {
+                    new TransferOutput
+                    {
+                        AssetId = assetId,
+                        Value = amount,
+                        ScriptHash = Wallet.ToScriptHash("AS8UDW7aLhrywLVHFL3ny5tSBaVhWTeZjT")
+                    }
+                }, fee: Fixed8.Zero);
         }
     }
 }
