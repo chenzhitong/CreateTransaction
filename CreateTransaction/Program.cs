@@ -79,7 +79,7 @@ namespace ConsoleApp2
                 ScriptHash = Wallet.ToScriptHash("AJd31a8rYPEBkY1QSxpsGy8mdU4vTYTD4U"), //Receiver
                 Value = new Fixed8((long)(0.999 * (long)Math.Pow(10, 8))) //Value (satoshi unit)
             }}.ToArray();
-            //则手续费是 0.001cGAS
+            //则手续费是 0.001 GAS
 
             return new ContractTransaction()
             {
@@ -113,7 +113,7 @@ namespace ConsoleApp2
                 ScriptHash = Wallet.ToScriptHash("AJd31a8rYPEBkY1QSxpsGy8mdU4vTYTD4U"), //Receiver
                 Value = new Fixed8((long)(0.999 * (long)Math.Pow(10, 8))) //Value (satoshi unit)
             }}.ToArray();
-            //则手续费是 0.001cGAS
+            //则手续费是 0.001 GAS
 
             //Query Balances
             using (ScriptBuilder sb2 = new ScriptBuilder())
