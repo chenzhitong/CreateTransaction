@@ -7,6 +7,7 @@ using Neo;
 using Neo.Core;
 using Neo.Implementations.Blockchains.LevelDB;
 using Neo.IO;
+using Neo.Network;
 using Neo.SmartContract;
 using Neo.VM;
 using Neo.Wallets;
@@ -88,6 +89,48 @@ namespace ConsoleApp2
                 Attributes = new TransactionAttribute[0],
                 Scripts = new Witness[0],
             };
+        }
+
+        public static Transaction Claim(Wallet wallet)
+        {
+            CoinReference[] claims = wallet.GetUnclaimedCoins().Select(p => p.Reference).ToArray();
+            if (claims.Length == 0) return null;
+
+            ClaimTransaction tx = new ClaimTransaction
+            {
+                Claims = claims,
+                Attributes = new TransactionAttribute[0],
+                Inputs = new CoinReference[0],
+                Outputs = new[]
+                {
+                    new TransactionOutput
+                    {
+                        AssetId = Blockchain.UtilityToken.Hash,
+                        Value = Blockchain.CalculateBonus(claims),
+                        ScriptHash = wallet.GetChangeAddress()
+                    }
+                }
+
+            };
+
+            //交易输入是 1 GAS
+            var input = new CoinReference()
+            {
+                PrevHash = new UInt256("0x51ac4f7f1662d8c9379ccce3fa7cd2085b9a865edfa53ad892352a41768dd1de".Remove(0, 2).HexToBytes().Reverse().ToArray()),
+                PrevIndex = 0
+            };
+            //交易输出是 0.999 GAS，找回到原地址
+            var output = new TransactionOutput()
+            {
+                AssetId = Blockchain.UtilityToken.Hash, //Asset Id, this is NEO
+                ScriptHash = Wallet.ToScriptHash("AJd31a8rYPEBkY1QSxpsGy8mdU4vTYTD4U"), //Receiver
+                Value = new Fixed8((long)(0.999 * (long)Math.Pow(10, 8))) //Value (satoshi unit)
+            };
+            //则手续费是 0.001 GAS
+            tx.Inputs.ToList().Add(input);
+            tx.Outputs.ToList().Add(output);
+
+            return tx;
         }
 
         //Transfer NEP-5 Asset
