@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -48,6 +50,13 @@ namespace Neo
                 if ((b[w] & 1 << x) > 0)
                     return x + w * 8;
             throw new Exception();
+        }
+
+        internal static string GetVersion(this Assembly assembly)
+        {
+            CustomAttributeData attribute = assembly.CustomAttributes.FirstOrDefault(p => p.AttributeType == typeof(AssemblyInformationalVersionAttribute));
+            if (attribute == null) return assembly.GetName().Version.ToString(3);
+            return (string)attribute.ConstructorArguments[0].Value;
         }
 
         public static byte[] HexToBytes(this string value)
@@ -206,6 +215,20 @@ namespace Neo
             {
                 return *((ulong*)pbyte);
             }
+        }
+
+        internal static IPAddress Unmap(this IPAddress address)
+        {
+            if (address.IsIPv4MappedToIPv6)
+                address = address.MapToIPv4();
+            return address;
+        }
+
+        internal static IPEndPoint Unmap(this IPEndPoint endPoint)
+        {
+            if (!endPoint.Address.IsIPv4MappedToIPv6)
+                return endPoint;
+            return new IPEndPoint(endPoint.Address.Unmap(), endPoint.Port);
         }
 
         internal static long WeightedAverage<T>(this IEnumerable<T> source, Func<T, long> valueSelector, Func<T, long> weightSelector)
