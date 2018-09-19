@@ -38,7 +38,14 @@ namespace Demo
             {
                 throw new ArgumentNullException("tx");
             }
-            tx.ToJson();
+    try
+    {
+        tx.ToJson();
+    }
+    catch (Exception)
+    {
+        throw new FormatException("交易格式错误");
+    }
 
 
             var wallet = new NEP6Wallet(new WalletIndexer("D:\\PrivateNet2\\node1\\Index_0001E240"), "1.json");
